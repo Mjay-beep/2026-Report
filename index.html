@@ -14,43 +14,87 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 48px 20px 60px;
   }
   .grid {
     display: grid;
     gap: 14px;
     grid-template-columns: 1fr;
     width: 100%;
-    max-width: 640px;
+    max-width: 980px;
   }
-  @media (min-width: 560px) {
+  @media (min-width: 720px) {
     .grid { grid-template-columns: repeat(3, 1fr); }
   }
   .card {
-    aspect-ratio: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     text-decoration: none;
     background: #fff;
     border: 1px solid #ececec;
     border-radius: 20px;
-    font-size: 64px;
-    font-weight: 600;
+    padding: 28px 24px 24px;
     color: #1a1a1a;
-    letter-spacing: -1px;
     transition: border-color 0.15s, transform 0.15s;
+    min-height: 240px;
   }
   .card:hover { border-color: #1a1a1a; }
-  .card:active { transform: scale(0.98); }
+  .card:active { transform: scale(0.99); }
+  .badge {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #4a4a4a;
+    list-style: none;
+  }
+  .desc li {
+    position: relative;
+    padding-left: 12px;
+    margin-bottom: 6px;
+  }
+  .desc li::before {
+    content: '·';
+    position: absolute;
+    left: 2px;
+    color: #999;
+  }
+  .desc li:last-child { margin-bottom: 0; }
+  .placeholder { color: #b0b0b0; font-style: italic; }
 </style>
 </head>
 <body>
   <div class="grid">
-    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype1.html">A</a>
-    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype2.html">B</a>
-    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype3.html">C</a>
+
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype1.html">
+      <div class="badge">A</div>
+      <ul class="desc">
+        <li>에이전트 선택 시, 에이전트 인풋필드 확장 (확장 시 현재 컨텍스트에 맞는 AI 오퍼링 제공)</li>
+        <li>인풋필드 선택 시, 키보드 생성. 대화 시작 시 대화창 진입</li>
+      </ul>
+    </a>
+
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype2.html">
+      <div class="badge">B</div>
+      <ul class="desc">
+        <li>에이전트 선택 시, 에이전트 키보드 생성. 대화 시작 시 대화창 진입</li>
+        <li>화면 탐색 중, 에이전트 선택 시, 최상단 AI 오퍼링 화면으로 이동</li>
+      </ul>
+    </a>
+
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype3.html">
+      <div class="badge">C</div>
+      <ul class="desc placeholder">
+        <li>에이전트 직진입 (설명 추가 필요)</li>
+      </ul>
+    </a>
+
   </div>
 </body>
 </html>
