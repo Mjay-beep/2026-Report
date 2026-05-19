@@ -3,162 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>채널UX 신규안 — 프로토타입 선택</title>
+<title>채널UX 신규안</title>
 <style>
-  :root {
-    --bg-1: #1d1e26;
-    --bg-2: #2a2c3d;
-    --accent: #5b67ee;
-    --accent-2: #8b7ff5;
-    --card-bg: rgba(255,255,255,0.06);
-    --card-bg-hover: rgba(255,255,255,0.10);
-    --card-border: rgba(255,255,255,0.10);
-    --text-primary: #f5f6ff;
-    --text-secondary: #a8acc8;
-    --text-muted: #6d7194;
-    --radius-md: 20px;
-    --radius-lg: 28px;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body {
     min-height: 100vh;
-    background: radial-gradient(ellipse at top, var(--bg-2), var(--bg-1) 60%);
+    background: #fafafa;
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
-    color: var(--text-primary);
+    color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
   }
   body {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 56px 20px 80px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
   }
-  .wrap { width: 100%; max-width: 720px; }
-  header { margin-bottom: 40px; }
-  .eyebrow {
-    font-size: 12px; font-weight: 600;
-    color: var(--accent-2);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  h1 {
-    font-size: 28px; font-weight: 700;
-    line-height: 1.35;
-    letter-spacing: -0.5px;
-  }
-  .sub {
-    margin-top: 10px;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.55;
-  }
-
   .grid {
     display: grid;
     gap: 14px;
     grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 640px;
   }
-  @media (min-width: 640px) {
-    .grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (min-width: 560px) {
+    .grid { grid-template-columns: repeat(3, 1fr); }
   }
-
   .card {
-    display: block;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
-    color: inherit;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius-lg);
-    padding: 26px 22px 22px;
-    transition: background 0.2s, transform 0.15s, border-color 0.2s;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 20px;
+    font-size: 64px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: -1px;
+    transition: border-color 0.15s, transform 0.15s;
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(91,103,238,0.10), rgba(139,127,245,0.04));
-    opacity: 0;
-    transition: opacity 0.25s;
-    pointer-events: none;
-  }
-  .card:hover {
-    background: var(--card-bg-hover);
-    border-color: rgba(139,127,245,0.35);
-    transform: translateY(-2px);
-  }
-  .card:hover::before { opacity: 1; }
-  .card:active { transform: translateY(0); }
-
-  .badge {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: white;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700;
-    box-shadow: 0 6px 18px rgba(91,103,238,0.35);
-    margin-bottom: 18px;
-  }
-  .card .name {
-    font-size: 16px; font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: -0.2px;
-  }
-  .card .desc {
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    min-height: 60px;
-  }
-  .card .meta {
-    margin-top: 14px;
-    font-size: 11px;
-    color: var(--text-muted);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  }
-
-  footer {
-    margin-top: 36px;
-    font-size: 11px;
-    color: var(--text-muted);
-    text-align: center;
-  }
+  .card:hover { border-color: #1a1a1a; }
+  .card:active { transform: scale(0.98); }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="eyebrow">Channel UX · 2026</div>
-      <h1>채널 컨셉UX 신규안<br>프로토타입 선택</h1>
-      <p class="sub">아래 A · B · C 안 중 하나를 선택해 워킹 프로토타입을 확인하세요.</p>
-    </header>
-
-    <div class="grid">
-      <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype1.html">
-        <div class="badge">A</div>
-        <div class="name">기본 모핑 GNB</div>
-        <div class="desc">Top ↔ GNB 모핑, 스크롤 스냅 기반의 기본안</div>
-        <div class="meta">prototype1.html</div>
-      </a>
-
-      <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype2.html">
-        <div class="badge">B</div>
-        <div class="name">에이전트 → Top 자동 이동</div>
-        <div class="desc">혜택/쇼핑/마이에서 에이전트 탭 시 Top으로 자동 이동 + 에이전트 펼침</div>
-        <div class="meta">prototype2.html</div>
-      </a>
-
-      <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype3.html">
-        <div class="badge">C</div>
-        <div class="name">에이전트 직진입</div>
-        <div class="desc">에이전트가 별도 진입점으로 동작하는 변형안</div>
-        <div class="meta">prototype3.html</div>
-      </a>
-    </div>
-
-    <footer>© 2026 · Mjay-beep</footer>
+  <div class="grid">
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype1.html">A</a>
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype2.html">B</a>
+    <a class="card" href="./채널 컨셉UX - 신규안 테스트/prototype3.html">C</a>
   </div>
 </body>
 </html>
