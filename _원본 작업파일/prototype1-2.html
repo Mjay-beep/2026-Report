@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>채널UX 신규안 — 워킹 프로토타입</title>
+<style>
+  :root {
+    --w: 393px;
+    --h: 852px;
+
+    --bg-1: #eef0ff;
+    --bg-2: #d6dcfa;
+    --bg-3: #c4cdf6;
+
+    --text-primary: #2e2f4f;
+    --text-secondary: #5c6087;
+    --text-muted: #8a8fb8;
+    --accent: #5b67ee;
+    --accent-2: #8b7ff5;
+
+    --card-bg: rgba(255, 255, 255, 0.55);
+    --card-bg-strong: rgba(255, 255, 255, 0.78);
+    --card-border: rgba(255, 255, 255, 0.6);
+    --chip-bg: rgba(255, 255, 255, 0.78);
+    --shadow-sm: 0 2px 12px rgba(60, 70, 130, 0.06);
+    --shadow-md: 0 8px 24px rgba(60, 70, 130, 0.10);
+    --shadow-lg: 0 20px 60px rgba(40, 50, 110, 0.20);
+
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 28px;
+    --radius-pill: 999px;
+
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur: 0.4s;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; min-height: 100vh;
+    background: #1d1e26;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+    overflow: hidden;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; align-items: center; justify-content: center; padding: 16px; }
+  button { font-family: inherit; }
+
+  .notice {
+    position: fixed;
+    top: 14px; left: 16px;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    line-height: 1.55;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 280px;
+  }
+  .notice b { color: rgba(255,255,255,0.85); }
+
+  /* ===== Phone ===== */
+  .phone {
+    width: var(--w); height: var(--h);
+    position: relative;
+    overflow: hidden;
+    border-radius: 44px;
+    box-shadow: var(--shadow-lg), 0 0 0 8px #111;
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 60%, var(--bg-3) 100%);
+  }
+
+  /* ===== Header ===== */
+  .header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 30;
+    padding-top: 14px;
+    pointer-events: none;
+  }
+  .header > * { pointer-events: auto; }
+  .statusbar {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .statusbar .right { display: inline-flex; align-items: center; gap: 5px; }
+  .top-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 12px 16px 0;
+  }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--card-bg-strong);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ===== Pages ===== */
+  .pages { position: absolute; inset: 0; }
+  .page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.32s ease;
+  }
+  .page.active { opacity: 1; pointer-events: auto; }
+  .page::-webkit-scrollbar { display: none; }
+  .page { scrollbar-width: none; }
+
+  /* Home: snap scroll between Top and Benefit */
+  .page-home {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100%;
+    position: relative;
+    padding-top: 110px;
+    padding-bottom: 130px;
+  }
+
+  /* Greeting + cards */
+  .greeting {
+    margin: 8px 24px 22px;
+    font-size: 26px;
+    line-height: 1.32;
+    color: #6c74b6;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+  }
+
+  .iphone-card {
+    margin: 0 16px 12px;
+    padding: 18px 18px 20px;
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .iphone-card .title {
+    font-size: 16px; font-weight: 600; line-height: 1.4;
+    color: var(--text-primary); max-width: 220px;
+  }
+  .iphone-card .cta {
+    margin-top: 14px;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.9);
+    color: var(--accent);
+    font-size: 13px; font-weight: 600;
+    border: none; cursor: pointer;
+  }
+  .iphone-card .device {
+    position: absolute;
+    right: -12px; top: 16px;
+    width: 110px; height: 130px;
+    filter: drop-shadow(0 8px 16px rgba(80, 90, 150, 0.18));
+  }
+
+  .chip-row {
+    margin: 0 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .chip {
+    align-self: flex-start;
+    background: var(--chip-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    padding: 10px 16px;
+    border-radius: var(--radius-pill);
+    font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: transform 0.15s;
+  }
+  .chip:active { transform: scale(0.97); }
+  .chip .ico { width: 18px; height: 18px; color: var(--accent); }
+
+  .carousel {
+    margin: 22px 16px 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 20px 20px 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 12px;
+    position: relative;
+  }
+  .carousel .meta { flex: 1; }
+  .carousel .meta .h { font-size: 15px; font-weight: 600; }
+  .carousel .meta .s { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .carousel .suitcase {
+    width: 56px; height: 80px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #d4d8e8, #b8bdd2);
+    box-shadow: 0 6px 12px rgba(80,90,150,0.18);
+    position: relative;
+  }
+  .carousel .suitcase::before {
+    content: '';
+    position: absolute; left: 50%; top: 0;
+    width: 1px; height: 100%;
+    background: rgba(0,0,0,0.08);
+  }
+  .carousel .dots {
+    position: absolute; bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 4px;
+  }
+  .carousel .dots span { width: 5px; height: 5px; border-radius: 50%; background: rgba(60,70,130,0.2); }
+  .carousel .dots span.active { background: var(--accent); }
+
+  /* Scroll cue */
+  .scroll-cue {
+    position: absolute;
+    bottom: 138px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+    animation: cue 1.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .scroll-cue .chev {
+    width: 22px; height: 22px;
+    color: var(--accent);
+  }
+  @keyframes cue {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
+    50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+  }
+  .top-snap.scrolled .scroll-cue { opacity: 0; transition: opacity 0.3s; }
+
+  /* Benefit section */
+  .benefit-body { padding: 0 16px; display: flex; flex-direction: column; gap: 14px; }
+  .b-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm);
+  }
+  .b-card .b-title {
+    font-size: 14px; font-weight: 600; line-height: 1.45;
+    color: var(--text-primary); margin-bottom: 10px;
+  }
+  .b-card .b-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .b-card .b-thumb {
+    margin-top: 12px;
+    height: 100px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, #ff8a3d, #e0588a);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 16px;
+    text-align: center; padding: 0 16px; line-height: 1.4;
+  }
+  .b-twoup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .b-poster {
+    aspect-ratio: 3/4;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, #2b3a72, #5a6cb5);
+    color: white; padding: 12px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    font-size: 11px; font-weight: 600; line-height: 1.3;
+  }
+  .b-poster.p2 { background: linear-gradient(160deg, #c97a4d, #efad7a); }
+  .b-row { display: flex; gap: 10px; overflow-x: auto; }
+  .b-row::-webkit-scrollbar { display: none; }
+  .b-row { scrollbar-width: none; }
+  .b-mini {
+    flex-shrink: 0;
+    width: 92px;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--card-border);
+    padding: 12px;
+    text-align: center;
+    font-size: 11px; color: var(--text-primary); font-weight: 600;
+  }
+  .b-mini .logo {
+    height: 48px; border-radius: 8px; margin-bottom: 8px;
+    background: #f6f4ed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #6b4a2b; font-weight: 700;
+  }
+  .b-mini.outback .logo { background: #2d2d2d; color: #f8c34a; }
+  .b-list-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(60,70,130,0.06);
+    font-size: 13px;
+  }
+  .b-list-item:last-child { border-bottom: none; }
+  .b-list-item .b-logo {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: #1a3a8a; color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; text-align: center;
+    line-height: 1.1;
+  }
+  .b-list-item .b-logo.dominos { background: #006491; }
+  .b-list-item .b-logo.baskin { background: #ec008c; }
+  .b-list-item .b-info { flex: 1; }
+  .b-list-item .b-info b { font-weight: 600; }
+  .b-list-item .b-info span { display: block; font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .b-product-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .b-product {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+
+  /* Empty pages */
+  .empty-page {
+    height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    font-size: 18px; font-weight: 600;
+    letter-spacing: 0.5px;
+    padding-top: 110px;
+    padding-bottom: 130px;
+  }
+
+  /* ===== Context chips (above chatbar, agent mode) ===== */
+  .context-chips {
+    position: absolute;
+    left: 14px; right: 14px;
+    bottom: 92px;
+    z-index: 19;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 0.26s ease, transform 0.34s var(--ease);
+  }
+  .context-chips.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0.15s; /* chatbar 펼침 후 등장 */
+  }
+  .ctx-chip {
+    background: rgba(255,255,255,0.96);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    padding: 9px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ctx-chip:active { transform: scale(0.97); }
+  .ctx-chip svg { width: 13px; height: 13px; color: var(--accent); flex-shrink: 0; }
+
+  /* ============================================================ */
+  /* ===== UNIFIED BAR (single morphing pill + chatbar/agent) === */
+  /* ============================================================ */
+  .bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 20;
+    padding: 14px 14px 26px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(180deg, rgba(238,240,255,0) 0%, rgba(220,225,250,0.85) 35%, rgba(196,205,246,0.95) 100%);
+  }
+
+  /* The GNB pill — always present, width morphs */
+  .gnb-pill {
+    height: 56px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: flex-grow var(--dur) var(--ease);
+  }
+  .tab {
+    height: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 14px;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition:
+      flex-grow var(--dur) var(--ease),
+      max-width var(--dur) var(--ease),
+      padding-left var(--dur) var(--ease),
+      padding-right var(--dur) var(--ease),
+      opacity var(--dur) var(--ease),
+      background var(--dur) var(--ease),
+      color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+    font-family: inherit;
+  }
+  .tab svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .tab.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    box-shadow: 0 4px 14px rgba(91,103,238,0.4);
+  }
+  .tab.active svg { color: white; }
+
+  /* Chatbar — expands in chat/agent modes, collapses in gnb mode */
+  .c-chatbar {
+    height: 48px;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: 0;
+    min-width: 0;
+    transition:
+      flex-grow var(--dur) var(--ease),
+      max-width var(--dur) var(--ease),
+      padding-left var(--dur) var(--ease),
+      padding-right var(--dur) var(--ease),
+      opacity var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+    font-family: inherit;
+  }
+  .c-chatbar .star { color: var(--accent); width: 18px; height: 18px; flex-shrink: 0; }
+  .c-chatbar .ph {
+    flex: 1; min-width: 0;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Agent button — expands in gnb mode */
+  .c-agent {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(91,103,238,0.45);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    transition:
+      width var(--dur) var(--ease),
+      max-width var(--dur) var(--ease),
+      opacity var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .c-agent svg { width: 20px; height: 20px; color: white; }
+
+  /* ===== Modes ===== */
+
+  /* chat / agent: small pill (active tab only) + chatbar expanded; agent hidden */
+  .bar[data-mode="chat"] .tab:not(.active),
+  .bar[data-mode="agent"] .tab:not(.active) {
+    max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    flex-grow: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .bar[data-mode="chat"] .gnb-pill,
+  .bar[data-mode="agent"] .gnb-pill {
+    flex-grow: 0;
+  }
+  .bar[data-mode="chat"] .c-chatbar,
+  .bar[data-mode="agent"] .c-chatbar {
+    flex-grow: 1;
+    max-width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+    opacity: 1;
+    pointer-events: auto;
+    border-color: var(--card-border);
+  }
+  .bar[data-mode="chat"] .c-agent,
+  .bar[data-mode="agent"] .c-agent {
+    width: 0;
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* gnb: full pill (all tabs) + agent button expanded; chatbar hidden */
+  .bar[data-mode="gnb"] .tab {
+    flex-grow: 1;
+    max-width: 100%;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .bar[data-mode="gnb"] .gnb-pill {
+    flex-grow: 1;
+  }
+  .bar[data-mode="gnb"] .c-chatbar {
+    flex-grow: 0;
+    max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    opacity: 0;
+    pointer-events: none;
+    border-color: transparent;
+  }
+  .bar[data-mode="gnb"] .c-agent {
+    width: 48px;
+    max-width: 48px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ===== Overlays ===== */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    display: flex; flex-direction: column;
+  }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .overlay.dim {
+    background: rgba(150, 160, 200, 0.35);
+  }
+
+  .imei-stack {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 292px;
+    padding: 12px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2;
+  }
+  .sugg-list { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .sugg-chip {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-pill);
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .sugg-chip:active { transform: scale(0.97); }
+  .sugg-chip svg { width: 14px; height: 14px; color: var(--accent); }
+
+  .imei-field {
+    height: 50px;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.98);
+    border: 1px solid var(--card-border);
+    display: flex; align-items: center;
+    padding: 0 18px; gap: 10px;
+    box-shadow: var(--shadow-sm);
+    font-size: 13.5px;
+    color: var(--text-primary);
+  }
+  .imei-field .cursor {
+    width: 1.5px; height: 18px;
+    background: var(--accent);
+    animation: blink 1s infinite;
+  }
+  .imei-field .ph { flex: 1; color: var(--text-muted); }
+  .imei-field svg { color: var(--accent); width: 18px; height: 18px; }
+  @keyframes blink { 0%,50% { opacity:1 } 51%,100% { opacity:0 } }
+
+  .keyboard {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 282px;
+    background: rgba(213,217,228,0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 10px 4px 14px;
+    z-index: 1;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .kb-row { display: flex; gap: 6px; justify-content: center; padding: 0 4px; }
+  .key {
+    flex: 1; height: 40px;
+    background: white; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #222;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    user-select: none; cursor: pointer;
+    transition: background 0.1s;
+  }
+  .key:active { background: #c4c8d0; }
+  .key.dark { background: #aab1bd; color: white; }
+  .key.wide-1 { flex: 1.4; font-size: 12px; }
+  .key.wide-2 { flex: 2.0; font-size: 13px; }
+  .key.return { flex: 1.6; background: var(--accent); color: white; font-size: 16px; }
+  .key.space { flex: 5; }
+
+  /* Chat thread */
+  .chat-screen {
+    background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  }
+  .chat-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 32;
+    padding: 60px 14px 12px;
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(180deg, rgba(238,240,255,0.95) 0%, rgba(238,240,255,0.0) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .chat-top .title {
+    flex: 1;
+    font-size: 14px; font-weight: 600;
+    color: var(--text-primary);
+  }
+  .chat-thread {
+    position: absolute;
+    top: 110px; bottom: 100px;
+    left: 0; right: 0;
+    overflow-y: auto;
+    padding: 14px 16px 8px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .chat-thread::-webkit-scrollbar { display: none; }
+  .chat-thread { scrollbar-width: none; }
+  .msg-row { display: flex; }
+  .msg-row.user { justify-content: flex-end; }
+  .msg-row.ai { justify-content: flex-start; align-items: flex-start; gap: 8px; }
+  .ai-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--card-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .ai-avatar svg { width: 16px; height: 16px; color: var(--accent); }
+  .bubble {
+    max-width: 78%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    line-height: 1.45;
+    box-shadow: var(--shadow-sm);
+  }
+  .bubble.user {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    border-bottom-right-radius: 6px;
+  }
+  .bubble.ai {
+    background: rgba(255,255,255,0.92);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    border-bottom-left-radius: 6px;
+  }
+  .chat-bottom-bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 12px 14px 26px;
+    background: linear-gradient(180deg, rgba(238,240,255,0) 0%, rgba(220,225,250,0.85) 35%, rgba(196,205,246,0.95) 100%);
+    z-index: 30;
+  }
+  .chat-bottom-bar .chat-bar-mini {
+    display: flex; align-items: center;
+    height: 48px;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--card-border);
+    padding: 0 16px;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+  .chat-bottom-bar .chat-bar-mini svg { color: var(--accent); width: 18px; height: 18px; }
+  .chat-bottom-bar .chat-bar-mini .ph { flex: 1; }
+
+  /* Mode badge */
+  .mode-badge {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.65);
+    color: white;
+    font-size: 10.5px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .mode-badge.flash { opacity: 1; }
+
+  .svg-defs { width: 0; height: 0; position: absolute; }
+</style>
+</head>
+<body>
+
+<svg class="svg-defs">
+  <defs>
+    <symbol id="i-percent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="19" y1="5" x2="5" y2="19"/>
+      <circle cx="6.5" cy="6.5" r="2.5"/>
+      <circle cx="17.5" cy="17.5" r="2.5"/>
+    </symbol>
+    <symbol id="i-star" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l1.8 6.4L20 10l-5.4 3.4L16.4 20 12 16.2 7.6 20l1.8-6.6L4 10l6.2-1.6L12 2z"/>
+    </symbol>
+    <symbol id="i-audio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="6" y1="8" x2="6" y2="16"/>
+      <line x1="10" y1="5" x2="10" y2="19"/>
+      <line x1="14" y1="9" x2="14" y2="15"/>
+      <line x1="18" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 8V5a1 1 0 0 1 1-1h3"/>
+      <path d="M16 4h3a1 1 0 0 1 1 1v3"/>
+      <path d="M20 16v3a1 1 0 0 1-1 1h-3"/>
+      <path d="M8 20H5a1 1 0 0 1-1-1v-3"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+    </symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 7h14l-1.5 12a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 7z"/>
+      <path d="M9 7V5a3 3 0 0 1 6 0v2"/>
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="4" y1="7" x2="20" y2="7"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+      <line x1="4" y1="17" x2="20" y2="17"/>
+    </symbol>
+    <symbol id="i-family" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="8" r="3"/>
+      <circle cx="17" cy="9" r="2.5"/>
+      <path d="M3 20c0-3.5 2.5-6 6-6s6 2.5 6 6"/>
+      <path d="M14 20c0-2.5 1.5-4.5 4-4.5s3 2 3 4.5"/>
+    </symbol>
+    <symbol id="i-won" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7l3 11 4-10 1 6 4-7 4 11"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+    </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <polyline points="12 7 12 12 15 14"/>
+    </symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="14 6 8 12 14 18"/>
+    </symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 12L12 20l-9-9V3h8z"/>
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="20" r="1.5"/>
+      <circle cx="17" cy="20" r="1.5"/>
+      <path d="M3 4h2l3 12h11l2-8H6"/>
+    </symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>
+    </symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </symbol>
+    <symbol id="i-iphone" viewBox="0 0 100 130">
+      <defs>
+        <linearGradient id="ph" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#f5f5f7"/>
+          <stop offset="1" stop-color="#cccfd6"/>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="6" width="80" height="118" rx="14" fill="url(#ph)" stroke="#a8acb8" stroke-width="0.6"/>
+      <rect x="22" y="18" width="42" height="42" rx="10" fill="#5d6478"/>
+      <circle cx="32" cy="28" r="6" fill="#23272e"/>
+      <circle cx="32" cy="28" r="2.4" fill="#3d4350"/>
+      <circle cx="48" cy="36" r="6" fill="#23272e"/>
+      <circle cx="48" cy="36" r="2.4" fill="#3d4350"/>
+      <circle cx="32" cy="44" r="4" fill="#23272e"/>
+      <rect x="20" y="68" width="50" height="3" rx="1.5" fill="#bcc1cd"/>
+      <rect x="20" y="78" width="32" height="3" rx="1.5" fill="#cdd1dc"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="notice">
+  <b>채널UX 신규안 — 워킹 프로토타입</b><br>
+  · Top에서 <b>%</b> 또는 살짝 드래그 → 같은 자리에서 <b>GNB로 모핑</b><br>
+  · 혜택 다시 탭 → Top으로 (혜택 탭 active 유지)<br>
+  · Top에선 콘텐츠 카드 미노출 · 스크롤 큐만<br>
+  · 스크롤하면 혜택 페이지가 상단으로 <b>스냅</b>
+</div>
+
+<div class="phone" id="phone">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="statusbar">
+      <span>7:28</span>
+      <span class="right">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="5" y="5" width="3" height="7" rx="0.5"/><rect x="10" y="2" width="3" height="10" rx="0.5"/><rect x="15" y="0" width="3" height="12" rx="0.5"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-3.7-3.3l1.4-1.4a3 3 0 0 1 4.6 0l1.4 1.4-1.4 1.4a1 1 0 0 1-1.4 0 1 1 0 0 0-1.4 0 1 1 0 0 1-1.4 0L4.3 8.7zm-2.8-2.8L3 4.5a7 7 0 0 1 10 0l1.5 1.4-1.4 1.4a3 3 0 0 1-4.3 0 1 1 0 0 0-1.4 0 3 3 0 0 1-4.3 0L1.5 5.9z"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="1" width="20" height="10" rx="2.5"/><rect x="3" y="3" width="16" height="6" rx="1" fill="currentColor"/><rect x="22" y="4" width="1.5" height="4" rx="0.7" fill="currentColor"/></svg>
+      </span>
+    </div>
+    <div class="top-actions">
+      <div class="icon-btn"><svg><use href="#i-scan"/></svg></div>
+      <div class="icon-btn"><svg><use href="#i-bag"/></svg></div>
+      <div class="icon-btn"><svg><use href="#i-menu"/></svg></div>
+    </div>
+  </div>
+
+  <!-- Pages -->
+  <div class="pages">
+
+    <!-- Home: snap between Top and Benefit -->
+    <div class="page page-home active" id="pageHome">
+
+      <!-- Top snap section -->
+      <section class="snap-section top-snap" id="topSnap">
+        <h1 class="greeting">안녕하세요 지훈님,<br>오랜만이에요</h1>
+
+        <div class="iphone-card">
+          <div class="title">주문하신 iPhone 20 Pro<br>배송이 완료됐어요</div>
+          <button class="cta">1분 셀프 개통하기</button>
+          <svg class="device" viewBox="0 0 100 130"><use href="#i-iphone"/></svg>
+        </div>
+
+        <div class="chip-row">
+          <div class="chip"><svg class="ico"><use href="#i-family"/></svg>가족 결합 현황 확인</div>
+          <div class="chip"><svg class="ico"><use href="#i-won"/></svg>이번달 요금이 많이 나온 이유</div>
+        </div>
+
+        <div class="carousel">
+          <div class="meta">
+            <div class="h">어떤 여행에도 어울리는 아이콘</div>
+            <div class="s">RIMOWA 수트케이스</div>
+          </div>
+          <div class="suitcase"></div>
+          <div class="dots">
+            <span class="active"></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- Scroll cue -->
+        <div class="scroll-cue">
+          <span>아래로 스크롤하면 혜택이 펼쳐져요</span>
+          <svg class="chev"><use href="#i-chev-down"/></svg>
+        </div>
+      </section>
+
+      <!-- Benefit snap section -->
+      <section class="snap-section benefit-snap" id="benefitSnap">
+        <div class="benefit-body">
+          <div class="b-card">
+            <div class="b-title">오늘 놓치면 다시 돌아오지 않는<br>혜택이에요</div>
+            <div class="b-thumb">불금엔 떡볶이!<br>VIP 인스타 30분 무료 ✨</div>
+          </div>
+
+          <div class="b-card">
+            <div class="b-title">4월 10일까지 인스타에서<br>50인 혜택이에요</div>
+            <div class="b-list-item">
+              <div class="b-logo" style="background:#3d3d3d">SKT<br>혜택</div>
+              <div class="b-info"><b>인기 음식 1개 증정</b><span>오늘 마감 · 23:59까지</span></div>
+            </div>
+            <div class="b-list-item">
+              <div class="b-logo" style="background:#1a3a8a">신라<br>스테이</div>
+              <div class="b-info"><b>커피 1잔 무료</b><span>전국 매장 · 평일 한정</span></div>
+            </div>
+          </div>
+
+          <div class="b-card">
+            <div class="b-title">가족과 함께 보는 영화,<br>한 명만 무료로 즐기세요</div>
+            <div class="b-twoup">
+              <div class="b-poster">JURASSIC ALL<br><span style="font-weight:400; font-size:9px; opacity:.8;">CGV 무료</span></div>
+              <div class="b-poster p2">JULY<br><span style="font-weight:400; font-size:9px; opacity:.8;">메가박스</span></div>
+            </div>
+          </div>
+
+          <div class="b-card">
+            <div class="b-title">이런 거 매!<br>가족 사용에 혜택을 더 좋아하다요</div>
+            <div class="b-sub">이번주 추천 제휴사</div>
+            <div class="b-row" style="margin-top:10px">
+              <div class="b-mini"><div class="logo">T우주</div>최대 50%</div>
+              <div class="b-mini outback"><div class="logo">OUTBACK</div>15% 할인</div>
+              <div class="b-mini"><div class="logo" style="background:#fff5e1;color:#a26a18">베네핏</div>2+1</div>
+              <div class="b-mini"><div class="logo" style="background:#e8eaff;color:#4d52b8">CGV</div>1+1</div>
+            </div>
+          </div>
+
+          <div class="b-card">
+            <div class="b-title">VIP 인스타스,<br>최저 합인전 받을 수 있는<br>혜택이 있었어요</div>
+            <div class="b-list-item">
+              <div class="b-logo">기프티콘</div>
+              <div class="b-info"><b>치킨 1마리 30% 할인</b><span>~3/31</span></div>
+            </div>
+            <div class="b-list-item">
+              <div class="b-logo dominos">도미노<br>피자</div>
+              <div class="b-info"><b>피자 L 사이즈 20% 할인</b><span>~3/31</span></div>
+            </div>
+            <div class="b-list-item">
+              <div class="b-logo baskin">BR</div>
+              <div class="b-info"><b>아이스크림 1+1</b><span>~3/31</span></div>
+            </div>
+          </div>
+
+          <div class="b-card">
+            <div class="b-title">다음 토요일,<br>이번 주 이벤트 손이 놓치지 마세요</div>
+            <div class="b-product-row">
+              <div class="b-product">📱</div>
+              <div class="b-product">⌚</div>
+              <div class="b-product">🎧</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Shopping page -->
+    <div class="page" id="pageShopping">
+      <div class="empty-page">쇼핑 페이지</div>
+    </div>
+
+    <!-- My page -->
+    <div class="page" id="pageMy">
+      <div class="empty-page">마이 페이지</div>
+    </div>
+  </div>
+
+  <!-- ===== Context chips (agent mode only) ===== -->
+  <div class="context-chips" id="contextChips"></div>
+
+  <!-- ===== Unified Bar (morphing pill) ===== -->
+  <div class="bar" id="bar" data-mode="chat">
+    <!-- Single GNB pill — collapsed shows only active tab, expanded shows all -->
+    <div class="gnb-pill" id="gnbPill">
+      <button class="tab" data-tab="benefit" onclick="onTabClick('benefit', event)"><svg><use href="#i-tag"/></svg>혜택</button>
+      <button class="tab" data-tab="shopping" onclick="onTabClick('shopping', event)"><svg><use href="#i-cart"/></svg>쇼핑</button>
+      <button class="tab" data-tab="my" onclick="onTabClick('my', event)"><svg><use href="#i-user"/></svg>마이</button>
+    </div>
+
+    <!-- Chatbar (expanded in chat/agent modes) -->
+    <button class="c-chatbar" id="chatBarBtn" onclick="openImei()">
+      <svg class="star"><use href="#i-star"/></svg>
+      <span class="ph">T에 대해 무엇이든 물어보세요</span>
+    </button>
+
+    <!-- Agent button (visible in gnb mode) -->
+    <button class="c-agent" id="btnAgent" onclick="setMode('agent')">
+      <svg><use href="#i-star"/></svg>
+    </button>
+  </div>
+
+  <!-- ===== IMEI overlay ===== -->
+  <div class="overlay" id="overlayImei">
+    <div onclick="closeImei()" style="position:absolute; top:0; left:0; right:0; bottom:332px; cursor:pointer; z-index:1;"></div>
+
+    <div class="imei-stack">
+      <div class="sugg-list">
+        <div class="sugg-chip" onclick="sendChat('요금제 혜택 자세히 알려줘')"><svg><use href="#i-star"/></svg>요금제 혜택 자세히 알려줘</div>
+        <div class="sugg-chip" onclick="sendChat('지금 이번달 요금 얼마인지 알려줘')"><svg><use href="#i-star"/></svg>지금 이번달 요금 얼마인지 알려줘</div>
+        <div class="sugg-chip" onclick="sendChat('다음달부터 납부하게 될 요금 알려줘')"><svg><use href="#i-star"/></svg>다음달부터 납부하게 될 요금 알려줘</div>
+      </div>
+      <div class="imei-field" onclick="sendChat('지금 구독 중인 상품 잘 안 써서 해지하고 싶어')">
+        <span class="cursor"></span>
+        <span class="ph">T에 대해 무엇이든 물어보세요</span>
+      </div>
+    </div>
+
+    <div class="keyboard">
+      <div class="kb-row">
+        <div class="key">ㅂ</div><div class="key">ㅈ</div><div class="key">ㄷ</div><div class="key">ㄱ</div>
+        <div class="key">ㅅ</div><div class="key">ㅛ</div><div class="key">ㅕ</div><div class="key">ㅑ</div>
+        <div class="key">ㅐ</div><div class="key">ㅔ</div>
+      </div>
+      <div class="kb-row" style="padding: 0 22px">
+        <div class="key">ㅁ</div><div class="key">ㄴ</div><div class="key">ㅇ</div><div class="key">ㄹ</div>
+        <div class="key">ㅎ</div><div class="key">ㅗ</div><div class="key">ㅓ</div><div class="key">ㅏ</div>
+        <div class="key">ㅣ</div>
+      </div>
+      <div class="kb-row">
+        <div class="key dark wide-1">⇧</div>
+        <div class="key">ㅋ</div><div class="key">ㅌ</div><div class="key">ㅊ</div>
+        <div class="key">ㅍ</div><div class="key">ㅠ</div><div class="key">ㅜ</div><div class="key">ㅡ</div>
+        <div class="key dark wide-1">⌫</div>
+      </div>
+      <div class="kb-row">
+        <div class="key dark wide-2">한/영</div>
+        <div class="key space"> </div>
+        <div class="key return" onclick="sendChat('지금 구독 중인 상품 잘 안 써서 해지하고 싶어')">↵</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Chat overlay ===== -->
+  <div class="overlay chat-screen" id="overlayChat">
+    <div class="chat-top">
+      <div class="icon-btn" onclick="exitChat()" title="뒤로"><svg><use href="#i-arrow-left"/></svg></div>
+      <div class="title">T 에이전트</div>
+      <div class="icon-btn" title="히스토리"><svg><use href="#i-history"/></svg></div>
+    </div>
+    <div class="chat-thread" id="chatThread"></div>
+    <div class="chat-bottom-bar">
+      <div class="chat-bar-mini" onclick="openImei()">
+        <svg><use href="#i-star"/></svg>
+        <span class="ph">T에 대해 무엇이든 물어보세요</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mode-badge" id="modeBadge">Top</div>
+</div>
+
+<script>
+  const state = {
+    page: 'home',            // 'home' | 'shopping' | 'my'
+    barMode: 'chat',         // 'chat' | 'gnb' | 'agent'
+    view: 'main',            // 'main' | 'imei' | 'chat'
+    imeiOrigin: 'home',      // controls dim
+    chatMessages: [],
+  };
+
+  const contextChipsMap = {
+    benefit: [
+      '지금 주변 멤버십 혜택 장소 확인하기',
+      '이번달 받을 수 있는 VIP 혜택 알려줘',
+      '내가 자주 가는 매장 혜택 추천해줘'
+    ],
+    shopping: [
+      '인기 우주 패스 상품 보기',
+      '내 데이터 사용량에 맞는 추천 상품',
+      '이번 주 베스트 아이템 알려줘'
+    ],
+    my: [
+      '이번달 요금 얼마인지 알려줘',
+      '내 멤버십 등급 확인하기',
+      '가족 결합 현황 보여줘'
+    ]
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function getActiveTab() {
+    if (state.page === 'shopping') return 'shopping';
+    if (state.page === 'my') return 'my';
+    return 'benefit'; // home → always 혜택 active in GNB
+  }
+
+  function applyState() {
+    // Pages
+    $('pageHome').classList.toggle('active', state.page === 'home');
+    $('pageShopping').classList.toggle('active', state.page === 'shopping');
+    $('pageMy').classList.toggle('active', state.page === 'my');
+
+    // Bar mode
+    $('bar').dataset.mode = state.barMode;
+
+    // Active tab in GNB pill (active tab serves as the chip in chat/agent modes)
+    const active = getActiveTab();
+    document.querySelectorAll('#gnbPill .tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === active);
+    });
+
+    // Context chips (agent 모드일 때만)
+    renderContextChips();
+
+    // Overlays
+    const showImei = state.view === 'imei';
+    $('overlayImei').classList.toggle('show', showImei);
+    $('overlayImei').classList.toggle('dim', showImei && state.imeiOrigin === 'agent');
+    $('overlayChat').classList.toggle('show', state.view === 'chat');
+
+    flashBadge();
+  }
+
+  function renderContextChips() {
+    const container = $('contextChips');
+    if (state.barMode !== 'agent' || state.view !== 'main') {
+      container.classList.remove('show');
+      return;
+    }
+    const tab = getActiveTab();
+    const chips = contextChipsMap[tab] || [];
+    container.replaceChildren();
+    chips.forEach(text => {
+      const div = document.createElement('div');
+      div.className = 'ctx-chip';
+      div.innerHTML = '<svg><use href="#i-star"/></svg>';
+      div.appendChild(document.createTextNode(text));
+      div.addEventListener('click', () => sendChat(text));
+      container.appendChild(div);
+    });
+    container.classList.add('show');
+  }
+
+  function flashBadge() {
+    const b = $('modeBadge');
+    let label = '';
+    if (state.view === 'imei') label = `IMEI · ${state.imeiOrigin === 'agent' ? '별도 레이어' : '홈'}`;
+    else if (state.view === 'chat') label = 'Chat 진행 중';
+    else {
+      const pageLbl = state.page === 'shopping' ? '쇼핑' : state.page === 'my' ? '마이' : 'Home';
+      const modeLbl = state.barMode === 'chat' ? 'Top'
+                    : state.barMode === 'gnb' ? 'GNB'
+                    : 'Agent';
+      label = `${pageLbl} · ${modeLbl}`;
+    }
+    b.textContent = label;
+    b.classList.add('flash');
+    clearTimeout(flashBadge._t);
+    flashBadge._t = setTimeout(() => b.classList.remove('flash'), 900);
+  }
+
+  // ===== Interactions =====
+  function setMode(m) {
+    state.barMode = m;
+    applyState();
+  }
+
+  function onTabClick(tab, ev) {
+    // 다른 element로 click 누수되지 않도록
+    ev?.stopPropagation();
+
+    // chat 모드에서 혜택 누르면 → GNB 펼침 (페이지/스크롤 변화 없음)
+    if (state.barMode === 'chat') {
+      state.barMode = 'gnb';
+      applyState();
+      return;
+    }
+
+    // agent 모드에서 활성탭(유일하게 보이는 탭) 누르면 → GNB 펼침으로 복귀
+    if (state.barMode === 'agent') {
+      state.barMode = 'gnb';
+      applyState();
+      return;
+    }
+
+    // GNB 모드에서 탭 누름 → 페이지 네비게이션
+    if (tab === 'benefit') {
+      if (state.page !== 'home') {
+        state.page = 'home';
+        setTimeout(() => $('benefitSnap').scrollIntoView({ behavior: 'smooth' }), 50);
+      } else {
+        if (isAtBenefit()) {
+          $('topSnap').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          $('benefitSnap').scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    } else if (tab === 'shopping') {
+      state.page = 'shopping';
+    } else if (tab === 'my') {
+      state.page = 'my';
+    }
+    applyState();
+  }
+
+  function isAtBenefit() {
+    const home = $('pageHome');
+    return home.scrollTop >= home.clientHeight * 0.5;
+  }
+
+  function openImei() {
+    // gnb 모드에선 chatbar가 시각적으로 collapsed → 우발적 호출 차단
+    if (state.barMode === 'gnb') return;
+    state.view = 'imei';
+    state.imeiOrigin = state.barMode === 'agent' ? 'agent' : 'home';
+    applyState();
+  }
+  function closeImei() { state.view = 'main'; applyState(); }
+
+  function sendChat(text) {
+    state.chatMessages.push({ role: 'user', text });
+    state.chatMessages.push({
+      role: 'ai',
+      text: '현재 구독 중인 구독 상품을 확인해볼게요. 잠시만 기다려주세요.'
+    });
+    renderChat();
+    state.view = 'chat';
+    applyState();
+  }
+  function exitChat() { state.view = 'main'; applyState(); }
+
+  function renderChat() {
+    const t = $('chatThread');
+    t.innerHTML = '';
+    state.chatMessages.forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'msg-row ' + (m.role === 'user' ? 'user' : 'ai');
+      if (m.role === 'ai') {
+        row.innerHTML = `<span class="ai-avatar"><svg><use href="#i-star"/></svg></span><div class="bubble ai">${m.text}</div>`;
+      } else {
+        row.innerHTML = `<div class="bubble user">${m.text}</div>`;
+      }
+      t.appendChild(row);
+    });
+    setTimeout(() => { t.scrollTop = t.scrollHeight; }, 50);
+  }
+
+  // ===== Auto chat ↔ gnb on scroll position (양방향) =====
+  const home = $('pageHome');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.target.id !== 'benefitSnap') return;
+      if (state.view !== 'main') return;
+      if (state.barMode === 'agent') return; // agent 모드는 스크롤 영향 없음
+      if (state.page !== 'home') return;
+
+      if (entry.intersectionRatio >= 0.25) {
+        // 혜택 영역 진입 → chatbar 접힘 (gnb)
+        $('topSnap').classList.add('scrolled');
+        if (state.barMode === 'chat') {
+          state.barMode = 'gnb';
+          applyState();
+        }
+      } else if (entry.intersectionRatio < 0.08) {
+        // Top으로 다시 올라옴 → chatbar 펼침 (chat)
+        $('topSnap').classList.remove('scrolled');
+        if (state.barMode === 'gnb') {
+          state.barMode = 'chat';
+          applyState();
+        }
+      }
+    });
+  }, { root: home, threshold: [0, 0.05, 0.08, 0.25, 0.5] });
+  obs.observe($('benefitSnap'));
+
+  applyState();
+</script>
+
+</body>
+</html>
